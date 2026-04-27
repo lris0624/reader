@@ -236,7 +236,6 @@
 
         /* 段落样式 */
         .paragraph-wrapper {
-            position: relative;
             margin-bottom: 1.5em;
         }
 
@@ -245,6 +244,15 @@
             line-height: 2.2;
             text-align: justify;
             color: var(--text-main);
+            padding: 8px 12px;
+            margin: 0 -12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .paragraph:active {
+            background: var(--accent-light);
         }
 
         .paragraph-title {
@@ -254,6 +262,7 @@
             margin: 2.5em 0 1.2em;
             color: var(--text-main);
             text-align: left;
+            cursor: default;
         }
 
         .paragraph-title:first-child {
@@ -261,49 +270,8 @@
         }
 
         .paragraph.has-note {
-            background: linear-gradient(to bottom, transparent 60%, var(--highlight-yellow) 60%);
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-
-        /* 批注按钮 */
-        .note-btn {
-            position: absolute;
-            right: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: white;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .paragraph-wrapper:hover .note-btn,
-        .paragraph-wrapper:active .note-btn {
-            opacity: 1;
-        }
-
-        .note-btn:active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .note-btn.has-note {
-            opacity: 1;
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
+            border-left: 3px solid var(--accent);
+            background: linear-gradient(90deg, var(--accent-light) 0%, transparent 30%);
         }
 
         /* 目录面板 */
@@ -1132,17 +1100,8 @@
                         paraDiv.classList.add('has-note');
                     }
                     paraDiv.textContent = para.text;
+                    paraDiv.onclick = () => openAnnotation(pIndex);
                     wrapper.appendChild(paraDiv);
-
-                    // 批注按钮
-                    const noteBtn = document.createElement('button');
-                    noteBtn.className = 'note-btn';
-                    if (state.annotations[pIndex]) {
-                        noteBtn.classList.add('has-note');
-                    }
-                    noteBtn.innerHTML = state.annotations[pIndex] ? '💬' : '💭';
-                    noteBtn.onclick = () => openAnnotation(pIndex);
-                    wrapper.appendChild(noteBtn);
                 }
 
                 container.appendChild(wrapper);
