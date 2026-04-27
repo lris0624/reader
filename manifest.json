@@ -4,8 +4,8 @@
     "description": "和小克一起读书、聊天、写批注",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#1a1a2e",
-    "theme_color": "#1a1a2e",
+    "background_color": "#f9f5ed",
+    "theme_color": "#f9f5ed",
     "orientation": "portrait-primary",
     "icons": [
         {
