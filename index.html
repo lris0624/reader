@@ -27,11 +27,9 @@
             --accent: #c45c3e;
             --accent-light: rgba(196, 92, 62, 0.15);
             --highlight-yellow: #fff3a3;
-            --highlight-green: #c8f7c5;
-            --highlight-pink: #ffd1dc;
             --border: #d4c9b8;
             --user-bubble: #e8f0e8;
-            --ai-bubble: #f0ece4;
+            --ai-bubble: #f5f0e6;
         }
 
         html, body {
@@ -83,18 +81,21 @@
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .nav-btn {
             background: none;
             border: none;
             color: var(--text-light);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            padding: 6px 10px;
+            padding: 8px;
             border-radius: 8px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .nav-btn:active {
@@ -234,10 +235,14 @@
         }
 
         /* 段落样式 */
+        .paragraph-wrapper {
+            position: relative;
+            margin-bottom: 1.5em;
+        }
+
         .paragraph {
             font-size: 1.15rem;
             line-height: 2.2;
-            margin-bottom: 1.8em;
             text-align: justify;
             color: var(--text-main);
         }
@@ -255,91 +260,70 @@
             margin-top: 0;
         }
 
-        /* 高亮文本 */
-        .highlighted {
+        .paragraph.has-note {
             background: linear-gradient(to bottom, transparent 60%, var(--highlight-yellow) 60%);
             padding: 0 2px;
-            cursor: pointer;
             border-radius: 2px;
         }
 
-        .highlighted:active {
-            opacity: 0.8;
-        }
-
-        .highlighted.has-note {
-            position: relative;
-        }
-
-        .highlighted.has-note::after {
-            content: '';
+        /* 批注按钮 */
+        .note-btn {
             position: absolute;
-            right: -6px;
-            top: -2px;
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-        }
-
-        /* 选中菜单 */
-        .selection-menu {
-            position: fixed;
-            display: none;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            padding: 8px 4px;
-            z-index: 200;
-            gap: 4px;
-        }
-
-        .selection-menu.show {
-            display: flex;
-        }
-
-        .selection-btn {
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 1rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: none;
-            border: none;
-            padding: 10px 14px;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            cursor: pointer;
-            border-radius: 8px;
-            white-space: nowrap;
-            font-family: inherit;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .selection-btn:active {
-            background: var(--accent-light);
+        .paragraph-wrapper:hover .note-btn,
+        .paragraph-wrapper:active .note-btn {
+            opacity: 1;
         }
 
-        .selection-btn svg {
-            width: 18px;
-            height: 18px;
+        .note-btn:active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
         }
 
-        /* 收藏面板 */
-        .collections-panel {
+        .note-btn.has-note {
+            opacity: 1;
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* 目录面板 */
+        .toc-panel {
             position: fixed;
             top: 0;
-            right: 0;
+            left: 0;
             bottom: 0;
             width: 100%;
-            max-width: 400px;
+            max-width: 320px;
             background: white;
             z-index: 150;
-            transform: translateX(100%);
+            transform: translateX(-100%);
             transition: transform 0.3s ease;
             display: flex;
             flex-direction: column;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
         }
 
-        .collections-panel.show {
+        .toc-panel.show {
             transform: translateX(0);
         }
 
@@ -372,6 +356,19 @@
             padding: 16px;
         }
 
+        .toc-item {
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toc-item:active {
+            background: var(--accent-light);
+        }
+
+        /* 收藏/批注列表 */
         .collection-empty {
             text-align: center;
             padding: 60px 20px;
@@ -396,16 +393,55 @@
         .collection-meta {
             font-size: 0.8rem;
             color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .collection-delete {
-            float: right;
             background: none;
             border: none;
             color: var(--text-muted);
             font-size: 0.85rem;
             cursor: pointer;
-            padding: 2px 8px;
+            padding: 4px 8px;
+        }
+
+        /* 遮罩层 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 140;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* 收藏面板 */
+        .collections-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            z-index: 150;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+
+        .collections-panel.show {
+            transform: translateX(0);
         }
 
         /* 设置面板 */
@@ -690,56 +726,6 @@
             height: 24px;
         }
 
-        /* 目录面板 */
-        .toc-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            max-width: 320px;
-            background: white;
-            z-index: 150;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
-        }
-
-        .toc-panel.show {
-            transform: translateX(0);
-        }
-
-        .toc-item {
-            padding: 14px 20px;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-
-        .toc-item:active {
-            background: var(--accent-light);
-        }
-
-        /* 遮罩层 */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 140;
-            display: none;
-        }
-
-        .overlay.show {
-            display: block;
-        }
-
         /* 安装提示 */
         .install-prompt {
             position: fixed;
@@ -800,15 +786,15 @@
                         <path d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                <button class="nav-btn" id="collectBtn" title="收藏">
+                <button class="nav-btn" id="collectBtn" title="批注">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                 </button>
                 <button class="nav-btn" id="settingsBtn" title="设置">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                     </svg>
                 </button>
             </div>
@@ -823,7 +809,7 @@
             <h1 class="welcome-title">共读书房</h1>
             <p class="welcome-desc">
                 上传一本书，或粘贴文字内容<br>
-                选中句子可以划线、写批注<br>
+                点击段落末尾的按钮写批注<br>
                 小克陪你一起读书聊天
             </p>
             <div class="upload-box">
@@ -852,9 +838,9 @@
         </button>
         <button class="tool-btn" onclick="showCollections()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            收藏
+            批注
         </button>
         <button class="tool-btn" onclick="showSettings()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -875,10 +861,10 @@
         <div class="panel-content" id="tocList"></div>
     </aside>
 
-    <!-- 收藏面板 -->
+    <!-- 收藏/批注面板 -->
     <aside class="collections-panel" id="collectionsPanel">
         <div class="panel-header">
-            <span class="panel-title">我的收藏</span>
+            <span class="panel-title">我的批注</span>
             <button class="panel-close" onclick="hideCollections()">×</button>
         </div>
         <div class="panel-content" id="collectionsList"></div>
@@ -901,22 +887,6 @@
                 <button class="btn-primary" onclick="saveSettings()">保存</button>
             </div>
         </div>
-    </div>
-
-    <!-- 选中菜单 -->
-    <div class="selection-menu" id="selectionMenu">
-        <button class="selection-btn" onclick="highlightSelection()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-            </svg>
-            划线收藏
-        </button>
-        <button class="selection-btn" onclick="annotateSelection()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            写批注
-        </button>
     </div>
 
     <!-- 批注对话框 -->
@@ -974,24 +944,20 @@
             bookTitle: localStorage.getItem('reader_bookTitle') || '',
             paragraphs: JSON.parse(localStorage.getItem('reader_paragraphs') || '[]'),
             titles: JSON.parse(localStorage.getItem('reader_titles') || '[]'),
-            highlights: JSON.parse(localStorage.getItem('reader_highlights') || '{}'),
             annotations: JSON.parse(localStorage.getItem('reader_annotations') || '{}')
         };
 
-        // 当前选中的文本信息
-        let currentSelection = null;
-        let currentHighlightId = null;
+        // 当前批注的段落索引
+        let currentParagraphIndex = null;
 
         // 初始化
         function init() {
-            // 恢复 API Key
             if (state.apiKey) {
                 document.getElementById('apiKeyInput').value = state.apiKey;
                 document.getElementById('apiStatus').classList.add('ready');
                 document.getElementById('apiStatusText').textContent = '已配置';
             }
 
-            // 恢复书籍
             if (state.paragraphs.length > 0) {
                 document.getElementById('bookTitle').textContent = state.bookTitle;
                 renderBook();
@@ -1052,6 +1018,7 @@
         function parseTextContent(content, filename) {
             state.paragraphs = [];
             state.titles = [];
+            state.annotations = {};
             state.bookTitle = filename.replace(/\.(txt|md)$/, '');
 
             const lines = content.split(/\r?\n/);
@@ -1130,6 +1097,7 @@
             localStorage.setItem('reader_bookTitle', state.bookTitle);
             localStorage.setItem('reader_paragraphs', JSON.stringify(state.paragraphs));
             localStorage.setItem('reader_titles', JSON.stringify(state.titles));
+            localStorage.setItem('reader_annotations', JSON.stringify(state.annotations));
         }
 
         // 显示阅读页面
@@ -1143,92 +1111,42 @@
             renderToc();
         }
 
-        // 换一本书
-        function newBook() {
-            if (confirm('确定要换一本书吗？当前的划线和批注会被清除。')) {
-                // 清除数据
-                state.paragraphs = [];
-                state.titles = [];
-                state.highlights = {};
-                state.annotations = {};
-                state.bookTitle = '';
-
-                localStorage.removeItem('reader_paragraphs');
-                localStorage.removeItem('reader_titles');
-                localStorage.removeItem('reader_highlights');
-                localStorage.removeItem('reader_annotations');
-                localStorage.removeItem('reader_bookTitle');
-
-                // 显示欢迎页面
-                document.getElementById('welcomePage').style.display = 'block';
-                document.getElementById('readingPage').classList.remove('active');
-                document.getElementById('bottomToolbar').classList.remove('show');
-                document.getElementById('tocBtn').style.display = 'none';
-                document.getElementById('newBookBtn').style.display = 'none';
-                document.getElementById('bookTitle').textContent = '共读书房';
-                document.getElementById('pasteTextarea').value = '';
-            }
-        }
-
-        // 绑定换书按钮
-        document.getElementById('newBookBtn').addEventListener('click', newBook);
-
         // 渲染书籍内容
         function renderBook() {
             const container = document.getElementById('bookContent');
             container.innerHTML = '';
 
             state.paragraphs.forEach((para, pIndex) => {
-                const div = document.createElement('div');
-                div.className = `paragraph ${para.isTitle ? 'paragraph-title' : ''}`;
-                div.dataset.index = pIndex;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'paragraph-wrapper';
 
-                // 检查是否有高亮
-                const paraHighlights = Object.entries(state.highlights)
-                    .filter(([id, h]) => h.paragraphIndex === pIndex)
-                    .sort((a, b) => a[1].startOffset - b[1].startOffset);
-
-                if (paraHighlights.length > 0) {
-                    div.innerHTML = renderWithHighlights(para.text, paraHighlights);
+                if (para.isTitle) {
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'paragraph-title';
+                    titleDiv.textContent = para.text;
+                    wrapper.appendChild(titleDiv);
                 } else {
-                    div.textContent = para.text;
+                    const paraDiv = document.createElement('div');
+                    paraDiv.className = 'paragraph';
+                    if (state.annotations[pIndex]) {
+                        paraDiv.classList.add('has-note');
+                    }
+                    paraDiv.textContent = para.text;
+                    wrapper.appendChild(paraDiv);
+
+                    // 批注按钮
+                    const noteBtn = document.createElement('button');
+                    noteBtn.className = 'note-btn';
+                    if (state.annotations[pIndex]) {
+                        noteBtn.classList.add('has-note');
+                    }
+                    noteBtn.innerHTML = state.annotations[pIndex] ? '💬' : '💭';
+                    noteBtn.onclick = () => openAnnotation(pIndex);
+                    wrapper.appendChild(noteBtn);
                 }
 
-                container.appendChild(div);
+                container.appendChild(wrapper);
             });
-
-            // 绑定高亮点击事件
-            document.querySelectorAll('.highlighted').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const highlightId = el.dataset.highlightId;
-                    openAnnotation(highlightId);
-                });
-            });
-        }
-
-        function renderWithHighlights(text, highlights) {
-            let result = '';
-            let lastEnd = 0;
-
-            highlights.forEach(([id, h]) => {
-                if (h.startOffset > lastEnd) {
-                    result += escapeHtml(text.slice(lastEnd, h.startOffset));
-                }
-                const hasNote = state.annotations[id] ? 'has-note' : '';
-                result += `<span class="highlighted ${hasNote}" data-highlight-id="${id}">${escapeHtml(text.slice(h.startOffset, h.endOffset))}</span>`;
-                lastEnd = h.endOffset;
-            });
-
-            if (lastEnd < text.length) {
-                result += escapeHtml(text.slice(lastEnd));
-            }
-
-            return result;
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         // 渲染目录
@@ -1240,9 +1158,19 @@
         }
 
         function scrollToParagraph(index) {
-            const para = document.querySelector(`.paragraph[data-index="${index}"]`);
-            if (para) {
-                para.scrollIntoView({ behavior: 'smooth' });
+            const wrappers = document.querySelectorAll('.paragraph-wrapper');
+            let targetIndex = index;
+            for (let i = 0; i < wrappers.length; i++) {
+                const para = wrappers[i].querySelector('.paragraph, .paragraph-title');
+                if (para) {
+                    const pIndex = parseInt(para.className.includes('paragraph-title') ?
+                        wrappers[i].querySelector('.paragraph-title') : -1);
+                }
+            }
+
+            const targetWrapper = document.querySelectorAll('.paragraph-wrapper')[index];
+            if (targetWrapper) {
+                targetWrapper.scrollIntoView({ behavior: 'smooth' });
                 hideToc();
             }
         }
@@ -1257,164 +1185,8 @@
             document.getElementById('tocPanel').classList.remove('show');
         }
 
-        // 文本选择 - 使用更可靠的方式
-        let selectionTimeout = null;
-
-        document.addEventListener('selectionchange', () => {
-            clearTimeout(selectionTimeout);
-            selectionTimeout = setTimeout(checkSelection, 50);
-        });
-
-        // 触摸设备额外监听
-        document.addEventListener('touchend', () => {
-            clearTimeout(selectionTimeout);
-            selectionTimeout = setTimeout(checkSelection, 300);
-        });
-
-        document.addEventListener('mouseup', () => {
-            clearTimeout(selectionTimeout);
-            selectionTimeout = setTimeout(checkSelection, 50);
-        });
-
-        function checkSelection() {
-            const selection = window.getSelection();
-            const menu = document.getElementById('selectionMenu');
-
-            // 隐藏菜单的条件
-            if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-                menu.classList.remove('show');
-                return;
-            }
-
-            const selectedText = selection.toString().trim();
-            if (!selectedText || selectedText.length < 1) {
-                menu.classList.remove('show');
-                return;
-            }
-
-            // 找到包含选中内容的段落
-            const range = selection.getRangeAt(0);
-            let node = range.commonAncestorContainer;
-
-            // 向上查找段落元素
-            let paragraph = null;
-            while (node && node !== document.body) {
-                if (node.classList && node.classList.contains('paragraph') && !node.classList.contains('paragraph-title')) {
-                    paragraph = node;
-                    break;
-                }
-                node = node.parentNode;
-            }
-
-            if (!paragraph) {
-                menu.classList.remove('show');
-                return;
-            }
-
-            const pIndex = parseInt(paragraph.dataset.index);
-            if (isNaN(pIndex) || !state.paragraphs[pIndex]) {
-                menu.classList.remove('show');
-                return;
-            }
-
-            const paraText = state.paragraphs[pIndex].text;
-            const startOffset = paraText.indexOf(selectedText);
-            const endOffset = startOffset + selectedText.length;
-
-            if (startOffset === -1) {
-                // 尝试部分匹配
-                const firstChars = selectedText.slice(0, 10);
-                const partialStart = paraText.indexOf(firstChars);
-                if (partialStart !== -1) {
-                    currentSelection = {
-                        text: selectedText,
-                        paragraphIndex: pIndex,
-                        startOffset: partialStart,
-                        endOffset: partialStart + selectedText.length
-                    };
-                } else {
-                    menu.classList.remove('show');
-                    return;
-                }
-            } else {
-                currentSelection = {
-                    text: selectedText,
-                    paragraphIndex: pIndex,
-                    startOffset,
-                    endOffset
-                };
-            }
-
-            // 定位菜单
-            try {
-                const rect = range.getBoundingClientRect();
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                menu.style.top = `${rect.bottom + scrollTop + 10}px`;
-                menu.style.left = `${Math.max(10, Math.min(window.innerWidth - 220, rect.left))}px`;
-                menu.classList.add('show');
-            } catch (e) {
-                menu.classList.remove('show');
-            }
-        }
-
-        // 点击其他地方隐藏菜单
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('selectionMenu');
-            if (!menu.contains(e.target)) {
-                // 不立即隐藏，给选择操作留时间
-                setTimeout(() => {
-                    const selection = window.getSelection();
-                    if (selection.isCollapsed) {
-                        menu.classList.remove('show');
-                    }
-                }, 100);
-            }
-        });
-
-        // 高亮选中
-        function highlightSelection() {
-            if (!currentSelection) return;
-
-            const id = `h_${Date.now()}`;
-            state.highlights[id] = {
-                text: currentSelection.text,
-                paragraphIndex: currentSelection.paragraphIndex,
-                startOffset: currentSelection.startOffset,
-                endOffset: currentSelection.endOffset,
-                createdAt: Date.now()
-            };
-
-            localStorage.setItem('reader_highlights', JSON.stringify(state.highlights));
-
-            window.getSelection().removeAllRanges();
-            document.getElementById('selectionMenu').classList.remove('show');
-
-            renderBook();
-            renderCollections();
-        }
-
-        // 批注选中
-        function annotateSelection() {
-            if (!currentSelection) return;
-
-            // 先创建高亮
-            const id = `h_${Date.now()}`;
-            state.highlights[id] = {
-                text: currentSelection.text,
-                paragraphIndex: currentSelection.paragraphIndex,
-                startOffset: currentSelection.startOffset,
-                endOffset: currentSelection.endOffset,
-                createdAt: Date.now()
-            };
-
-            localStorage.setItem('reader_highlights', JSON.stringify(state.highlights));
-
-            window.getSelection().removeAllRanges();
-            document.getElementById('selectionMenu').classList.remove('show');
-
-            renderBook();
-            openAnnotation(id);
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         // 收藏面板
@@ -1429,44 +1201,54 @@
 
         function renderCollections() {
             const list = document.getElementById('collectionsList');
-            const highlights = Object.entries(state.highlights).sort((a, b) => b[1].createdAt - a[1].createdAt);
+            const annotations = Object.entries(state.annotations)
+                .filter(([id, notes]) => notes && notes.length > 0)
+                .sort((a, b) => {
+                    const aLast = a[1][a[1].length - 1];
+                    const bLast = b[1][b[1].length - 1];
+                    return (bLast?.timestamp || 0) - (aLast?.timestamp || 0);
+                });
 
-            if (highlights.length === 0) {
-                list.innerHTML = '<div class="collection-empty">还没有收藏的内容<br><br>选中文字后点击"划线收藏"</div>';
+            if (annotations.length === 0) {
+                list.innerHTML = '<div class="collection-empty">还没有批注<br><br>点击段落旁的按钮开始写批注</div>';
                 return;
             }
 
-            list.innerHTML = highlights.map(([id, h]) => `
-                <div class="collection-item">
-                    <div class="collection-text">"${escapeHtml(h.text)}"</div>
-                    <div class="collection-meta">
-                        ${state.annotations[id] ? '💬 有批注' : ''}
-                        <button class="collection-delete" onclick="deleteHighlight('${id}')">删除</button>
+            list.innerHTML = annotations.map(([pIndex, notes]) => {
+                const para = state.paragraphs[parseInt(pIndex)];
+                const text = para ? para.text.slice(0, 80) + (para.text.length > 80 ? '...' : '') : '';
+                return `
+                    <div class="collection-item" onclick="openAnnotation(${pIndex}); hideCollections();">
+                        <div class="collection-text">"${escapeHtml(text)}"</div>
+                        <div class="collection-meta">
+                            <span>${notes.length} 条对话</span>
+                            <button class="collection-delete" onclick="event.stopPropagation(); deleteAnnotation('${pIndex}')">删除</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function deleteHighlight(id) {
-            delete state.highlights[id];
-            delete state.annotations[id];
-            localStorage.setItem('reader_highlights', JSON.stringify(state.highlights));
-            localStorage.setItem('reader_annotations', JSON.stringify(state.annotations));
-            renderCollections();
-            renderBook();
+        function deleteAnnotation(pIndex) {
+            if (confirm('确定删除这条批注吗？')) {
+                delete state.annotations[pIndex];
+                localStorage.setItem('reader_annotations', JSON.stringify(state.annotations));
+                renderCollections();
+                renderBook();
+            }
         }
 
         // 批注对话
-        function openAnnotation(highlightId) {
-            currentHighlightId = highlightId;
-            const highlight = state.highlights[highlightId];
+        function openAnnotation(pIndex) {
+            currentParagraphIndex = pIndex;
+            const para = state.paragraphs[pIndex];
 
-            document.getElementById('annotationQuote').textContent = highlight.text;
+            document.getElementById('annotationQuote').textContent = para.text;
 
             const chatArea = document.getElementById('chatArea');
             chatArea.innerHTML = '';
 
-            const notes = state.annotations[highlightId] || [];
+            const notes = state.annotations[pIndex] || [];
             notes.forEach(note => addChatBubble(note.role, note.content));
 
             document.getElementById('annotationModal').classList.add('show');
@@ -1475,7 +1257,7 @@
 
         function closeAnnotation() {
             document.getElementById('annotationModal').classList.remove('show');
-            currentHighlightId = null;
+            currentParagraphIndex = null;
         }
 
         function addChatBubble(role, content) {
@@ -1500,10 +1282,14 @@
             input.value = '';
             addChatBubble('user', content);
 
-            if (!state.annotations[currentHighlightId]) {
-                state.annotations[currentHighlightId] = [];
+            if (!state.annotations[currentParagraphIndex]) {
+                state.annotations[currentParagraphIndex] = [];
             }
-            state.annotations[currentHighlightId].push({ role: 'user', content });
+            state.annotations[currentParagraphIndex].push({
+                role: 'user',
+                content,
+                timestamp: Date.now()
+            });
             localStorage.setItem('reader_annotations', JSON.stringify(state.annotations));
 
             renderBook();
@@ -1522,7 +1308,7 @@
             loadingBubble.textContent = '小克在思考...';
             chatArea.appendChild(loadingBubble);
 
-            const highlight = state.highlights[currentHighlightId];
+            const para = state.paragraphs[currentParagraphIndex];
 
             const messages = [
                 {
@@ -1549,7 +1335,7 @@
                 },
                 {
                     role: 'user',
-                    content: `「${highlight.text}」\n\n好好说: ${userMessage}`
+                    content: `「${para.text}」\n\n好好说: ${userMessage}`
                 }
             ];
 
@@ -1573,7 +1359,11 @@
                 if (data.choices && data.choices[0]) {
                     const aiContent = data.choices[0].message.content;
                     addChatBubble('ai', aiContent);
-                    state.annotations[currentHighlightId].push({ role: 'ai', content: aiContent });
+                    state.annotations[currentParagraphIndex].push({
+                        role: 'ai',
+                        content: aiContent,
+                        timestamp: Date.now()
+                    });
                     localStorage.setItem('reader_annotations', JSON.stringify(state.annotations));
                 } else if (data.error) {
                     addChatBubble('ai', `出错了: ${data.error.message}`);
@@ -1594,6 +1384,29 @@
         // 点击外部关闭
         document.getElementById('annotationModal').addEventListener('click', (e) => {
             if (e.target.id === 'annotationModal') closeAnnotation();
+        });
+
+        // 换一本书
+        document.getElementById('newBookBtn').addEventListener('click', () => {
+            if (confirm('确定要换一本书吗？当前的批注会被清除。')) {
+                state.paragraphs = [];
+                state.titles = [];
+                state.annotations = {};
+                state.bookTitle = '';
+
+                localStorage.removeItem('reader_paragraphs');
+                localStorage.removeItem('reader_titles');
+                localStorage.removeItem('reader_annotations');
+                localStorage.removeItem('reader_bookTitle');
+
+                document.getElementById('welcomePage').style.display = 'block';
+                document.getElementById('readingPage').classList.remove('active');
+                document.getElementById('bottomToolbar').classList.remove('show');
+                document.getElementById('tocBtn').style.display = 'none';
+                document.getElementById('newBookBtn').style.display = 'none';
+                document.getElementById('bookTitle').textContent = '共读书房';
+                document.getElementById('pasteTextarea').value = '';
+            }
         });
 
         // 点击收藏按钮
