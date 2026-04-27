@@ -790,6 +790,11 @@
         <div class="nav-content">
             <div class="book-title" id="bookTitle">共读书房</div>
             <div class="nav-actions">
+                <button class="nav-btn" id="newBookBtn" title="换一本书" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
                 <button class="nav-btn" id="tocBtn" title="目录" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16"/>
@@ -1133,9 +1138,40 @@
             document.getElementById('readingPage').classList.add('active');
             document.getElementById('bottomToolbar').classList.add('show');
             document.getElementById('tocBtn').style.display = 'block';
+            document.getElementById('newBookBtn').style.display = 'block';
             document.getElementById('bookTitle').textContent = state.bookTitle;
             renderToc();
         }
+
+        // 换一本书
+        function newBook() {
+            if (confirm('确定要换一本书吗？当前的划线和批注会被清除。')) {
+                // 清除数据
+                state.paragraphs = [];
+                state.titles = [];
+                state.highlights = {};
+                state.annotations = {};
+                state.bookTitle = '';
+
+                localStorage.removeItem('reader_paragraphs');
+                localStorage.removeItem('reader_titles');
+                localStorage.removeItem('reader_highlights');
+                localStorage.removeItem('reader_annotations');
+                localStorage.removeItem('reader_bookTitle');
+
+                // 显示欢迎页面
+                document.getElementById('welcomePage').style.display = 'block';
+                document.getElementById('readingPage').classList.remove('active');
+                document.getElementById('bottomToolbar').classList.remove('show');
+                document.getElementById('tocBtn').style.display = 'none';
+                document.getElementById('newBookBtn').style.display = 'none';
+                document.getElementById('bookTitle').textContent = '共读书房';
+                document.getElementById('pasteTextarea').value = '';
+            }
+        }
+
+        // 绑定换书按钮
+        document.getElementById('newBookBtn').addEventListener('click', newBook);
 
         // 渲染书籍内容
         function renderBook() {
@@ -1221,35 +1257,53 @@
             document.getElementById('tocPanel').classList.remove('show');
         }
 
-        // 文本选择 - 使用多种事件确保兼容
-        document.addEventListener('selectionchange', handleSelection);
-        document.addEventListener('mouseup', handleSelection);
-        document.addEventListener('touchend', () => setTimeout(handleSelection, 100));
+        // 文本选择 - 使用更可靠的方式
+        let selectionTimeout = null;
 
-        function handleSelection() {
+        document.addEventListener('selectionchange', () => {
+            clearTimeout(selectionTimeout);
+            selectionTimeout = setTimeout(checkSelection, 50);
+        });
+
+        // 触摸设备额外监听
+        document.addEventListener('touchend', () => {
+            clearTimeout(selectionTimeout);
+            selectionTimeout = setTimeout(checkSelection, 300);
+        });
+
+        document.addEventListener('mouseup', () => {
+            clearTimeout(selectionTimeout);
+            selectionTimeout = setTimeout(checkSelection, 50);
+        });
+
+        function checkSelection() {
             const selection = window.getSelection();
             const menu = document.getElementById('selectionMenu');
 
-            if (selection.rangeCount === 0 || selection.isCollapsed) {
+            // 隐藏菜单的条件
+            if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
                 menu.classList.remove('show');
                 return;
             }
 
             const selectedText = selection.toString().trim();
-            if (!selectedText) {
+            if (!selectedText || selectedText.length < 1) {
                 menu.classList.remove('show');
                 return;
             }
 
+            // 找到包含选中内容的段落
             const range = selection.getRangeAt(0);
-            const container = range.commonAncestorContainer;
+            let node = range.commonAncestorContainer;
 
-            // 检查是否在段落内
+            // 向上查找段落元素
             let paragraph = null;
-            if (container.nodeType === 3) {
-                paragraph = container.parentElement.closest('.paragraph:not(.paragraph-title)');
-            } else {
-                paragraph = container.closest('.paragraph:not(.paragraph-title)');
+            while (node && node !== document.body) {
+                if (node.classList && node.classList.contains('paragraph') && !node.classList.contains('paragraph-title')) {
+                    paragraph = node;
+                    break;
+                }
+                node = node.parentNode;
             }
 
             if (!paragraph) {
@@ -1258,32 +1312,65 @@
             }
 
             const pIndex = parseInt(paragraph.dataset.index);
-            const paraText = state.paragraphs[pIndex].text;
-
-            // 通过查找文本位置来计算偏移量
-            const startOffset = paraText.indexOf(selectedText);
-            const endOffset = startOffset + selectedText.length;
-
-            if (startOffset === -1) {
+            if (isNaN(pIndex) || !state.paragraphs[pIndex]) {
                 menu.classList.remove('show');
                 return;
             }
 
-            currentSelection = {
-                text: selectedText,
-                paragraphIndex: pIndex,
-                startOffset,
-                endOffset
-            };
+            const paraText = state.paragraphs[pIndex].text;
+            const startOffset = paraText.indexOf(selectedText);
+            const endOffset = startOffset + selectedText.length;
 
-            // 显示菜单
-            const rects = range.getClientRects();
-            const rect = rects[rects.length - 1] || range.getBoundingClientRect();
+            if (startOffset === -1) {
+                // 尝试部分匹配
+                const firstChars = selectedText.slice(0, 10);
+                const partialStart = paraText.indexOf(firstChars);
+                if (partialStart !== -1) {
+                    currentSelection = {
+                        text: selectedText,
+                        paragraphIndex: pIndex,
+                        startOffset: partialStart,
+                        endOffset: partialStart + selectedText.length
+                    };
+                } else {
+                    menu.classList.remove('show');
+                    return;
+                }
+            } else {
+                currentSelection = {
+                    text: selectedText,
+                    paragraphIndex: pIndex,
+                    startOffset,
+                    endOffset
+                };
+            }
 
-            menu.style.top = `${rect.bottom + window.scrollY + 8}px`;
-            menu.style.left = `${Math.max(10, Math.min(rect.left, window.innerWidth - 200))}px`;
-            menu.classList.add('show');
+            // 定位菜单
+            try {
+                const rect = range.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                menu.style.top = `${rect.bottom + scrollTop + 10}px`;
+                menu.style.left = `${Math.max(10, Math.min(window.innerWidth - 220, rect.left))}px`;
+                menu.classList.add('show');
+            } catch (e) {
+                menu.classList.remove('show');
+            }
         }
+
+        // 点击其他地方隐藏菜单
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('selectionMenu');
+            if (!menu.contains(e.target)) {
+                // 不立即隐藏，给选择操作留时间
+                setTimeout(() => {
+                    const selection = window.getSelection();
+                    if (selection.isCollapsed) {
+                        menu.classList.remove('show');
+                    }
+                }, 100);
+            }
+        });
 
         // 高亮选中
         function highlightSelection() {
