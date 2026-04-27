@@ -1166,9 +1166,7 @@
                 el.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const highlightId = el.dataset.highlightId;
-                    if (state.annotations[highlightId]) {
-                        openAnnotation(highlightId);
-                    }
+                    openAnnotation(highlightId);
                 });
             });
         }
@@ -1223,8 +1221,10 @@
             document.getElementById('tocPanel').classList.remove('show');
         }
 
-        // 文本选择
+        // 文本选择 - 使用多种事件确保兼容
         document.addEventListener('selectionchange', handleSelection);
+        document.addEventListener('mouseup', handleSelection);
+        document.addEventListener('touchend', () => setTimeout(handleSelection, 100));
 
         function handleSelection() {
             const selection = window.getSelection();
@@ -1235,13 +1235,22 @@
                 return;
             }
 
+            const selectedText = selection.toString().trim();
+            if (!selectedText) {
+                menu.classList.remove('show');
+                return;
+            }
+
             const range = selection.getRangeAt(0);
             const container = range.commonAncestorContainer;
 
             // 检查是否在段落内
-            const paragraph = container.nodeType === 3
-                ? container.parentElement.closest('.paragraph:not(.paragraph-title)')
-                : container.closest('.paragraph:not(.paragraph-title)');
+            let paragraph = null;
+            if (container.nodeType === 3) {
+                paragraph = container.parentElement.closest('.paragraph:not(.paragraph-title)');
+            } else {
+                paragraph = container.closest('.paragraph:not(.paragraph-title)');
+            }
 
             if (!paragraph) {
                 menu.classList.remove('show');
@@ -1251,10 +1260,14 @@
             const pIndex = parseInt(paragraph.dataset.index);
             const paraText = state.paragraphs[pIndex].text;
 
-            // 计算选中文本在原始段落中的位置
-            const selectedText = selection.toString();
-            const startOffset = range.startOffset;
-            const endOffset = range.endOffset;
+            // 通过查找文本位置来计算偏移量
+            const startOffset = paraText.indexOf(selectedText);
+            const endOffset = startOffset + selectedText.length;
+
+            if (startOffset === -1) {
+                menu.classList.remove('show');
+                return;
+            }
 
             currentSelection = {
                 text: selectedText,
